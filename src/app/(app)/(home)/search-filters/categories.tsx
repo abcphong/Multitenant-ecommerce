@@ -1,16 +1,17 @@
 "use client";
 
 import { CategoryDropdown } from "./categories-dropdown";
-import { CustomCategory } from "../type";
+
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ListFilterIcon } from "lucide-react";
 import { CategoriesSidebar } from "./categories-sidebar";
+import { CategoriesGetManyOutput } from "@/modules/categories/types";
 
 
 interface Props{
-    data: CustomCategory[];
+    data: CategoriesGetManyOutput;
 };
 export const Categories = ({ data} : Props) =>{
     const containerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +61,6 @@ export const Categories = ({ data} : Props) =>{
             {/*Categories sidebar */}
             <CategoriesSidebar open={isSidebarOpen}
                 onOpenChange={setIsSidebarOpen}
-                data = {data}
             />
 
             {/* ẩn div để tính tất cả items */}
