@@ -12,7 +12,7 @@ const dmSans= DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Multitenant Ecommerce",
+  title: "Create the Next App",
   description: "This website is for multitenant",
 };
 
