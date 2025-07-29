@@ -6,8 +6,56 @@ import { Media, Tenant} from "@/payload-types"
 
 import z from "zod";
 import { DEFAULT_LIMIT } from "@/constants";
+import { TRPCError } from "@trpc/server";
 
 export const libraryRouter = createTRPCRouter({
+  getOne: protectedProcedure.input(z.object({
+      productId:z.string(),
+    })).query(async ({ ctx, input }) =>{
+    const orderData = await ctx.db.find({
+    collection: "orders",
+    limit:1,
+    pagination:false,
+    where:{
+      and:[
+        {
+          product:{
+            equals:input.productId,
+          }
+        },
+        {
+          user:{
+            equals: ctx.session.user.id,
+          },
+        },
+      ]
+    },
+    });
+
+    const order = orderData.docs[0];
+
+    if(!order){
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Order not found"
+      })
+    }
+
+    const product = await ctx.db.findByID({
+      collection: "products",
+      id:input.productId,
+    });
+
+    if(!product)
+    {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Product not found",
+      });
+    }
+    return product;
+    }),
+
     getMany: protectedProcedure.input(z.object({
       cursor:z.number().default(1),
       limit:z.number().default(DEFAULT_LIMIT),
@@ -35,9 +83,33 @@ export const libraryRouter = createTRPCRouter({
         },
       },
     });
+
+    const dataWithSummarizedReviews = await Promise.all(
+      productsData.docs.map(async (doc) => {
+        const reviewsData = await ctx.db.find({
+          collection: "reviews",
+          pagination: false,
+          where:{
+            product:{
+              equals: doc.id,
+            },
+          },
+      });
+
+      return {
+        ...doc,
+        reviewCount: reviewsData.totalDocs,
+        reviewRating:
+          reviewsData.docs.length === 0
+          ? 0
+          : reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) / reviewsData.totalDocs
+      }
+      })
+    )
+
         return {
           ...productsData,
-          docs: productsData.docs.map((doc) => ({
+          docs: dataWithSummarizedReviews.map((doc) => ({
             ...doc,
             image: doc.image as Media | null,
             tenant: doc.tenant as Tenant & {image: Media | null },
