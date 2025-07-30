@@ -8,7 +8,7 @@ import { headers as getHeaders} from "next/headers";
 import z from "zod";
 import { sortValues } from "../search-params";
 import { DEFAULT_LIMIT } from "@/constants";
-import { reviewsRouter } from "@/modules/reviews/server/procedures";
+import { TRPCError } from "@trpc/server";
 
 export const productsRouter = createTRPCRouter({
     getOne: baseProcedure
@@ -30,6 +30,14 @@ export const productsRouter = createTRPCRouter({
             content: false,
           }
         });
+
+        if(product.isArchived)
+        {
+          throw new TRPCError({
+            code:"NOT_FOUND",
+            message: "Product not found",
+          })
+        }
 
         let isPurchased = false;
 
@@ -120,8 +128,14 @@ export const productsRouter = createTRPCRouter({
       tenantSlug: z.string().nullable().optional(),
     })).query(async ({ ctx, input }) =>{
 
-      const where: Where = {}
+
+      const where: Where = {
+        isArchived:{
+          not_equals: true,
+        },
+      };
       let sort: Sort= "-createdAt";
+
 
       if(input.sort === "curated")
       {
@@ -158,6 +172,12 @@ export const productsRouter = createTRPCRouter({
       {
         where["tenant.slug"] = {
           equals: input.tenantSlug
+        };
+      }else{
+        //Nếu chúng ta load sản phẩm lên storefrone ( no tenantslug)
+        //Những sản phẩm này là được private tại tenant store
+        where["isPrivate"] ={
+          not_equals: true
         }
       }
 

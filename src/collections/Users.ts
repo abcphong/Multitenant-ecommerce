@@ -36,6 +36,7 @@ export const Users: CollectionConfig = {
     hidden: ({user}) => !isSuperAdmin(user),
   },
   auth: true,
+  
   fields: [
     {
       name: "username",

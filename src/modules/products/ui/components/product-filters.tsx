@@ -5,7 +5,6 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 import { PriceFilter } from "./price-filter";
 import { useProductFilters } from "../../hooks/use-product-filters";
-import { keyof } from "zod";
 import { TagsFilter } from "./tags-filter";
 
 interface ProductFiltersProps{

@@ -1,4 +1,4 @@
-import { use, useCallback } from "react";
+import { useCallback } from "react";
 import { useCartStore } from "../store/use-cart-store";
 import { useShallow } from "zustand/react/shallow"
 

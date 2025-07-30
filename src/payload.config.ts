@@ -17,11 +17,11 @@ import { Tenants } from './collections/Tenants'
 import { Orders } from './collections/Orders'
 import {  Reviews } from './collections/Reviews'
 import { isSuperAdmin } from './lib/access'
-import { StripeVerify } from '@/components/stripe-verify'
+
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-console.log("Connecting to DB:", process.env.DATABASE_URI)
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -32,6 +32,7 @@ export default buildConfig({
       beforeNavLinks:["@/components/stripe-verify#StripeVerify"]
     }
   },
+  
   collections: [Users, Media, Categories, Products, Tags, Tenants, Orders, Reviews],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -47,6 +48,7 @@ export default buildConfig({
     multiTenantPlugin<Config>({
       collections:{
         products:{},
+       
       },
       tenantsArrayField:{
         includeDefaultField:false,

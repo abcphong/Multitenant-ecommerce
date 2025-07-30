@@ -1,8 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
 import { cn, formatCurrency } from "@/lib/utils"
-import { Button } from "@/components/ui/button";
-
 
 interface CheckoutItemProps{
     isLast?: boolean,

@@ -8,6 +8,7 @@ import type Stripe from "stripe";
 import { CheckoutMetadata, ProductMetaData } from "../types";
 import { stripe } from "@/lib/stripe";
 import { PLATFORM_FEE_PERCENTAGE } from "@/constants";
+import { generateTenantURL } from "@/lib/utils";
 
 
 
@@ -78,6 +79,11 @@ export const checkoutRouter = createTRPCRouter({
                 "tenant.slug":{
                   equals: input.tenantSlug
                 }
+              },
+              {
+                isArchived:{
+                  not_equals: true
+                }
               }
             ]
           }
@@ -138,12 +144,14 @@ export const checkoutRouter = createTRPCRouter({
 
             const platformFeeAmount = Math.round(
               totalAmount * (PLATFORM_FEE_PERCENTAGE / 100)
-            )
+            );
+
+            const domain = generateTenantURL(input.tenantSlug)
           
-          const checkout = await stripe.checkout.sessions.create({
+            const checkout = await stripe.checkout.sessions.create({
             customer_email: ctx.session.user.email,
-            success_url:`${process.env.NEXT_PUBLIC_APP_URL}/${input.tenantSlug}/checkout?success=true`,
-            cancel_url:`${process.env.NEXT_PUBLIC_APP_URL}/${input.tenantSlug}/checkout?cancel=true`,
+            success_url:`${domain}/checkout?success=true`,
+            cancel_url:`${domain}/checkout?cancel=true`,
             mode:"payment",
             line_items: lineItems,
             invoice_creation:{
@@ -164,24 +172,27 @@ export const checkoutRouter = createTRPCRouter({
           }
 
           return {url: checkout.url};
-      })
-      
-      
-      ,
+      }),
     getProducts: baseProcedure.input(z.object({
       ids: z.array(z.string()),
     })).query(async ({ ctx, input }) =>{
-
-      
-
 
     const data = await ctx.db.find({
     collection: "products",
     depth: 2, // Tạo "category" "image" "tenant" "tenant.image"
     where:{
-      id:{
-        in: input.ids,
-      },
+      and:[
+        {
+          id:{
+            in:input.ids,
+          },
+        },
+        {
+          isArchived:{
+            not_equals: true,
+          },
+        },
+      ]
     }
     });
 

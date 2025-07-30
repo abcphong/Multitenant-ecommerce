@@ -4,14 +4,9 @@ import { SearchInput } from "./search-input"
 import { Categories } from "./categories" 
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { CategoriesGetManyOutput } from "@/modules/categories/types";
 import { useParams } from "next/navigation";
 import { DEFAULT_BG_COLOR } from "@/modules/home/constant";
 import { BreadcrumbNavigation } from "./breadcrumb-navigation";
-
-interface Props{
-    data: CategoriesGetManyOutput;
-};
 
 export const SearchFilters = () =>{
     const trpc = useTRPC();
