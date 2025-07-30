@@ -16,15 +16,21 @@ import { Tags } from './collections/Tags'
 import { Tenants } from './collections/Tenants'
 import { Orders } from './collections/Orders'
 import {  Reviews } from './collections/Reviews'
+import { isSuperAdmin } from './lib/access'
+import { StripeVerify } from '@/components/stripe-verify'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+console.log("Connecting to DB:", process.env.DATABASE_URI)
 export default buildConfig({
   admin: {
     user: Users.slug,
     importMap: {
-      baseDir: path.resolve(dirname),
+      baseDir: path.resolve(dirname,'src'),
     },
+    components:{
+      beforeNavLinks:["@/components/stripe-verify#StripeVerify"]
+    }
   },
   collections: [Users, Media, Categories, Products, Tags, Tenants, Orders, Reviews],
   editor: lexicalEditor(),
@@ -32,7 +38,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: mongooseAdapter({
+  db: mongooseAdapter({  
     url: process.env.DATABASE_URI || '',
   }),
   sharp,
@@ -45,7 +51,7 @@ export default buildConfig({
       tenantsArrayField:{
         includeDefaultField:false,
       },
-      userHasAccessToAllTenants: (user) =>  Boolean(user?.roles?.includes('super-admin'))
+      userHasAccessToAllTenants: (user) => isSuperAdmin(user)
     })
     // storage-adapter-placeholder
   ],
