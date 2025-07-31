@@ -17,8 +17,21 @@ import { Tenants } from './collections/Tenants'
 import { Orders } from './collections/Orders'
 import {  Reviews } from './collections/Reviews'
 import { isSuperAdmin } from './lib/access'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
+//import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
+import { s3Storage } from '@payloadcms/storage-s3';
 
+if (!process.env.S3_BUCKET_NAME) {
+  throw new Error('Missing S3_BUCKET_NAME environment variable');
+}
+if (!process.env.AWS_ACCESS_KEY_ID) {
+  throw new Error('Missing AWS_ACCESS_KEY_ID environment variable');
+}
+if (!process.env.AWS_SECRET_ACCESS_KEY) {
+  throw new Error('Missing AWS_SECRET_ACCESS_KEY environment variable');
+}
+if (!process.env.AWS_REGION) {
+  throw new Error('Missing AWS_REGION environment variable');
+}
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -55,12 +68,27 @@ export default buildConfig({
       },
       userHasAccessToAllTenants: (user) => isSuperAdmin(user)
     }),
-    vercelBlobStorage({
-      enabled:true,
-      collections:{
-        media:true,
+    
+  s3Storage({
+      collections: {
+        media: true,
       },
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    }),
+      bucket: process.env.S3_BUCKET_NAME,
+      config: {
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+        region: process.env.AWS_REGION,
+      },
+    })
+
+    //vercelBlobStorage({
+      //enabled:true,
+      //collections:{
+       // media:true,
+      //},
+      //token: process.env.BLOB_READ_WRITE_TOKEN,
+    //}),
   ],
 })
